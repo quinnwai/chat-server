@@ -1,4 +1,4 @@
 # CSE330
 Quinn Wai Wong -- 475704 -- quinnwai
 
-REPLACE-THIS-TEXT-WITH-YOUR-PARTNERS-NAME-STUDENT-ID-AND-GITHUB-USERNAME
+Vishal Agarwal -- 488422 -- avishal-cyber
