@@ -15,8 +15,10 @@ const server = http.createServer(function (req, res) {
         res.writeHead(200);
         res.end(data);
     });
+
 });
 server.listen(port);
+console.log("Server running on port", port);
 
 // Import Socket.IO and pass our HTTP server object to it.
 const socketio = require("socket.io")(http, {
@@ -28,10 +30,29 @@ const io = socketio.listen(server);
 io.sockets.on("connection", function (socket) {
     // This callback runs when a new Socket.IO connection is established.
 
+    // QW: This is done so that 1 message goes to everyone's socket, so check user name first before emitting
     socket.on('message_to_server', function (data) {
         // This callback runs when the server receives a new message from the client.
 
-        console.log("message: " + data["message"]); // log it to the Node.JS output
-        io.sockets.emit("message_to_client", { message: data["message"] }) // broadcast the message to other users
+        console.log("message: " + data["message"]); // log it to the Node.JS output (actual console)
+        console.log("author: " + data["author"]);
+
+        // if(data["to"] !== undefined){
+        //     console.log("username: " + data["to"]);
+        // }
+        // else {
+        //     console.log("no user given so global message");
+        // }
+
+        if(data["receiver"] == undefined){
+            console.log("global message");
+            io.sockets.emit("message_to_client", { message: data["message"], author: data["author"] }); // broadcast the message to other users
+        }
+        else{
+            console.log("private message to " + data["receiver"]);
+            io.sockets.emit("message_to_client", { message: data["message"], author: data["author"], receiver: data["receiver"] }); // broadcast the message to other users
+        }
+
+        
     });
 });

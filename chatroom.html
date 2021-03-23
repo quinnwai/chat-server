@@ -5,46 +5,22 @@
     <title>Chat Room</title>
     <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js" async></script>
+    <script>
+        //check that the username is not blank
+
+        document.getElementsByClassName("user")[0].getElementsByClassName("login")[0].addEventListener('click', function(){
+
+        });
+    </script>
 </head>
 <body>
 <div id="box">
     <h1>Chatterbox</h1>
 </div>
 
-<p>
-    Welcome to Chatterbox!
-</p>
-
 <!-- user authentication -->
 <div class="user">
-    <h2>User Sign-In</h2>
-
-    <label>Username: <input type="text" id="user_username"/> </label>
-    <label>Password: <input type="password" id="user_password"/> </label>
+    <label>Username: <input type="text" id="username"/> </label>
     <button class="login">login</button>
 </div>
-
-
-<!-- user registration -->
-<div class="registration">
-<h2>New Users</h2>
-<p>Want to make an account?</p>
-
-<label>First Name: <input type="text" id="first_name" /> </label> 
-<label>Last Name: <input type="text" id="last_name" /> </label> <br><br>
-<label>Username: <input type="text" id="new_username" /> </label> 
-<label>Password: <input type="password" id="new_password" /> </label>
-<button id ="register">register</button>
-</div>
-<br>
-
-<div class="room_list">
-
-<!-- should be hidden or created on sign in -->
-<div class="add_room">
-    <h2>Add Room</h2>
-    Room Name: <input type="text" id="add_room_name"/>
-    Password (optional): <input type="text" id="add_room_password"/>
-</div>
-</body>
-</html>
