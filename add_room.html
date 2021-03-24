@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+   <head></head>
+   <body> 
+       <div id="add_room">
+            Room name: <input type="text" id="add_room_name"/>
+            Password (optional): <input type="password" id="add_room_password"/>
+            <button id="add">add</button>
+       </div>
+
+       <script type ="text/javascript">
+            // debugging
+            // let  allRooms = [
+            //     {  "roomName": "hi",  "roomPass": "vsvsv",  "activeUsers": ["quinn", "avishal"],  "bannedUsers": ["hi", "my",  "name"]  },
+            //     {"roomName": "hi2",  "roomPass": "2vsvsv",  "activeUsers": ["quinn", "avishal"],  "bannedUsers": ["my", "name"] },
+            //     {"roomName": "hi2",  "roomPass": "",  "activeUsers": ["quinn", "avishal"],  "bannedUsers": ["my", "name"] }];
+
+            console.log(allRooms);
+
+            let user = "quinnwai"; //TODO: make sure this links up with global user varialbe
+
+            add_div = document.getElementById("add_room");
+            document.getElementById("add").addEventListener('click', function(){
+                //send stuff over to client
+                let add_name = document.getElementById("add_room_name").value;
+                let add_pwd = document.getElementById("add_room_password").value;
+
+                if(add_name == ""){
+                    alert("please fill out a room name!");
+                }
+                else{
+                    if(add_pwd != ""){
+                    console.log({ room_name: add_name, admin: user, password: add_pwd});
+                    //TODO: make sure emit calls are matching on calls in chat
+                    // io.sockets.emit("add_room_to_server", { room_name: add_name, admin: user, password: add_pwd}); 
+                }
+                else {
+                    console.log({ room_name: add_name, admin: user});
+                    // io.sockets.emit("add_room_to_server", { room_name: add_name, admin: user}); 
+                }
+                
+
+                // FIXME: call refresh on list
+
+                // debugging
+                // allRooms.push({  "roomName": "ROOM",  "roomPass": "pass",  "activeUsers": [],  "bannedUsers": []})
+                // console.log(allRooms);
+                }
+            });
+
+            ////////// CODE FOR chat_server.js inside of connect/////////
+            // socket.on('add_room_to_server', function (data) {
+
+            //     console.log("room name: " + data["room_name"]); // log it to the Node.JS output (actual console)
+            //     console.log("admin: " + data["admin"]);
+
+            //     if(data["password"] == undefined){
+            //         console.log("no password");
+            //     }
+            //     else{
+            //         console.log("Password: " + data["password"]);
+            //     }
+
+            //     allRooms.push({  "roomName": data["room_name"],  "roomPass": data["password"],  "activeUsers": [],  "bannedUsers": []  })
+
+            // });
+       </script>
+   </body>
+</html>
+    
