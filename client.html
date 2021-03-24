@@ -1,68 +1,58 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <script src="/socket.io/socket.io.js"></script>
-      <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
-      <!-- <script src="login.js"></script>
-      <script src="messages.js"></script> -->
-      <script type ="text/javascript">
-         let user;
-   
-         document.addEventListener('DOMContentLoaded', function(){
-            //login button event listener
-            document.getElementsByClassName("user")[0].getElementsByClassName("login")[0].addEventListener("click", function(){
-               user = document.getElementById("username").value;
-   
-               // delete div class user
-               $(".user").remove();
-            });
-         });
-   
-         var socketio = io.connect();
-         socketio.on("message_to_client", function(data) {
-            /* 
-            2 different cases:
-               1 ~ undefined receiver is a global message 
-               2 ~ global user variable matches receiver is a private message
-            */
-            if(data["receiver"] == undefined || data["receiver"] == user){
-               //Append an HR thematic break and the escaped HTML of the new message
-               document.getElementById("chatlog").appendChild(document.createElement("hr"));
-   
-               //show author of message and content
-               let msg = data['author']+": "+data['message'];
-               document.getElementById("chatlog").appendChild(document.createTextNode(msg));
-            }
-         
-         });
-   
-         function sendMessage(){
-            var msg = document.getElementById("message_input").value;
-            var usr = document.getElementById("username_input").value;
-   
-            // send private message info over if needed
-            if(usr != ""){
-               // socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
-               socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
-            }
-            else{
-               socketio.emit("message_to_server", {message: msg, author: user });
-            }   
-         }
-      </script>
-   </head>
-   <body>
+<head>
+   <script src="/socket.io/socket.io.js"></script>
+   <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+<body>
    <!-- login -->
-   <div class="user">
+   <!-- <div class="user">
       <label>Username: <input type="text" id="username"/> </label>
       <button class="login">login</button>
-   </div>
+   </div> -->
 
-      message: <input type="text" id="message_input"/>
-      to (optional, private message): <input type="text" id="username_input"/>
-      <button onclick="sendMessage()">send</button>
-      <div id="chatlog"></div>
-      
-      <script src="client.js"></script>
-   </body>
+   message: <input type="text" id="message_input"/>
+   to (optional, private message): <input type="text" id="username_input"/>
+   <button id="send">send</button>
+   <div id="chatlog"></div>
+
+   <script type ="text/javascript">
+      let user = prompt("Username:");
+   
+      var socketio = io.connect();
+      socketio.on("message_to_client", function(data) {
+         /* 
+         2 different cases:
+            1 ~ undefined receiver is a global message 
+            2 ~ global user variable matches receiver is a private message
+         */
+         if(data["receiver"] == undefined || data["receiver"] == user){
+            //Append an HR thematic break and the escaped HTML of the new message
+            document.getElementById("chatlog").appendChild(document.createElement("hr"));
+   
+            //show author of message and content
+            let msg = data['author']+": "+data['message'];
+            document.getElementById("chatlog").appendChild(document.createTextNode(msg));
+         }
+      });
+   
+      function sendMessage(){
+         var msg = document.getElementById("message_input").value;
+         var usr = document.getElementById("username_input").value;
+   
+         // send private message info over if needed
+         if(usr != ""){
+            // socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
+            socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
+         }
+         else{
+            socketio.emit("message_to_server", {message: msg, author: user });
+         }   
+      }
+
+      document.getElementById("send").addEventListener('click', sendMessage, false);
+   </script>
+
+</body>
+
 </html>
