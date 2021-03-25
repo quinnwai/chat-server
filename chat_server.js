@@ -96,4 +96,9 @@ io.sockets.on("connection", function (socket) {
         console.log("data... " + data);
         io.sockets.emit("send_list_to_client", data);
     });
+
+    socket.on('get_room_to_server', function (data) {
+        let response = {active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
+        io.sockets.emit("send_room_to_client", response);
+    });
 });

@@ -29,6 +29,11 @@
 </div>
 <script type="text/javascript">
     let user = prompt("Username:");
+    while(user == ""){
+        user = prompt("Username:");
+    }
+    
+    let currentRoomId;
 
 
     var socketio = io.connect();
@@ -65,6 +70,8 @@
                             if (correct_pass) {
                                 alert("Access granted");
                                 //do the thing where he is redirected to room
+                                currentRoomId = i;
+                                showRoom(currentRoomId);
                             }
                             else {
                                 alert("sorry, that was the wrong password");
@@ -73,6 +80,8 @@
                     }
                     else {
                         alert("Access granted");
+                        currentRoomId = i;
+                        showRoom(currentRoomId);
                         //do the thing where he is redirected to room
                     }
 
@@ -80,6 +89,68 @@
             }, false);
         }
     }
+
+    // shows the message stuff; shows user names
+    function showRoom(roomId){
+        socketio.emit("get_room_to_server", { room_id: roomId, author: user });
+        
+        // get active users and print them
+        socketio.on("send_room_to_client", function (data) {
+            // clear out everything in div
+            // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
+            let messageArea = document.getElementById("messageArea");
+            while(messageArea.firstChild){
+                messageArea.removeChild(messageArea.firstChild);
+            }
+
+            console.log(data);
+            
+            // make sure this is the right user 
+            if(user == data["receiver"]){
+                usersInRoom = data["active_users"];
+                messageArea.appendChild(document.createTextNode("Active users: "));
+                for(let i = 0; i < usersInRoom.length; i++){
+                    messageArea.appendChild(document.createTextNode(usersInRoom[i]));
+
+                    if(i != usersInRoom.length-1){
+                        messageArea.appendChild(document.createTextNode(", "));
+                    }
+                }
+
+                //create header for messages
+                header = document.createElement("h2");
+                header.textContent = "Send Messages";
+                messageArea.appendChild(header);
+        
+                // create message and username (for dms) HTML inputs
+                messageArea.appendChild(document.createTextNode("message:"));
+                msg_input = document.createElement("input");
+                msg_input.type = "text";
+                msg_input.id = "message_input"
+                messageArea.appendChild(msg_input);
+        
+                messageArea.appendChild(document.createTextNode(" to (optional, private message):"));
+                usr_input = document.createElement("input");
+                usr_input.type = "text";
+                usr_input.id = "username_input"
+                messageArea.appendChild(usr_input);
+        
+                // create button w/ send message listener
+                let button = document.createElement("button");
+                button.id = "send_message";
+                button.textContent = "send";
+                messageArea.appendChild(button);
+        
+                document.getElementById("send_message").addEventListener('click', sendMessage, false);
+                
+                // create chatlog div
+                let chatlog = document.createElement("div");
+                chatlog.id = "chatlog";
+                document.body.appendChild(chatlog);
+            }
+        });
+    }
+
 
     // receives any messages sent from other clients (processed by the server)
     socketio.on("message_to_client", function (data) {
@@ -113,7 +184,7 @@
         }
     }
 
-    document.getElementById("send").addEventListener('click', sendMessage, false);
+    // document.getElementById("send").addEventListener('click', sendMessage, false);
 </script>
 </body>
 <!-- <script src="lobby.js"></script> -->
