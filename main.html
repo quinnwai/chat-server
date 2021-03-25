@@ -42,8 +42,12 @@
     socketio.emit("get_list_to_server", {});
 
     socketio.on("send_list_to_client", function (data) {
-        console.log(data);
+        socketio.emit("send_user_to_server", {user: user});
+        socketio.on("send_list_to_client", function (init) {
+        if(!init){
         showLobby(data);
+        }
+    });
     });
 
     function showLobby(allRooms) {
