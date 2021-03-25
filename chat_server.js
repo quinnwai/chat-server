@@ -2,17 +2,20 @@
 let allRooms = [
     { "roomName": "hi",
     "roomPass": "vsvsv",
+    "hasPass": true,
     "activeUsers": ["quinn", "avishal"],
     "creator": "hi",
     "bannedUsers": ["hi", "my", "name"]
     },
     {"roomName": "hi2",
     "roomPass": "",
+    "hasPass": false,
     "creator": "hi",
     "activeUsers": ["quinn", "avishal"],
     "bannedUsers": ["my", "name"] },
 {"roomName": "hi2",
     "roomPass": "",
+    "hasPass": false,
     "creator": "avishal",
     "activeUsers": ["quinn", "avishal"],
     "bannedUsers": ["my", "name", "quinn"] }]
@@ -22,7 +25,7 @@ const http = require("http"),
     fs = require("fs");
 
 const port = 3456;
-const file = "client.html";
+const file = "main.html";
 // Listen for HTTP connections.  This is essentially a miniature static file server that only serves our one file, client.html, on port 3456:
 const server = http.createServer(function (req, res) {
     // This callback runs when a new connection is made to our HTTP server.
@@ -66,6 +69,17 @@ io.sockets.on("connection", function (socket) {
             io.sockets.emit("message_to_client", { message: data["message"], author: data["author"], receiver: data["receiver"] }); // broadcast the message to other users
         }
     });
+    //recieve password
+        socket.on('send_pass_to_server', function (data) {
+        //push relevant data (room name and password) onto list
+        
+        if(data["password"] === allRooms[data["id"]].roomPass){
+            io.sockets.emit("pass_validator_to_client", true);
+        }
+        else {
+            io.sockets.emit("pass_validator_to_client", false);
+        }
+    });
 
     // receiving message from 
     socket.on('get_list_to_server', function () {
@@ -73,7 +87,8 @@ io.sockets.on("connection", function (socket) {
 
         let data = [];
         for (let i = 0; i < allRooms.length; i++) {
-            let room = { room_name: allRooms[i].roomName, room_pass: allRooms[i].roomPass }
+            let room = { room_name: allRooms[i].roomName, has_pass: allRooms[i].hasPass, 
+                bannedUsers: allRooms[i].bannedUsers}
             console.log(room);
             data.push(room);
         }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+
+<body>
+<div id = "main">
+    <div id="availableRooms">
+        <h2> Rooms </h2>
+            <div id="add_room">
+                <h3>Add Room</h3>
+                Room name: <input type="text" id="add_room_name" /> <br>
+                Password (optional): <input type="password" id="add_room_password" />
+                <button id="add">add</button>
+            </div>
+        <button class="roomButton"> hi man </button>
+    </div>
+    <div id="messageArea">
+        <h2> Send Messages </h2>
+        Message: <input type="text" id="message_input" />
+        To (optional, private message): <input type="text" id="username_input" />
+        <button id="send">send</button>
+        <div id="chatlog"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    let user = prompt("Username:");
+
+
+    var socketio = io.connect();
+
+    // get list and see what is returned
+    socketio.emit("get_list_to_server", {});
+
+    socketio.on("send_list_to_client", function (data) {
+        console.log(data);
+        showLobby(data);
+    });
+
+    function showLobby(allRooms) {
+        console.log(allRooms);
+        for (let i = 0; i < allRooms.length; i++) {
+            document.getElementById("availableRooms").innerHTML +=
+                '<button id = "room_' + i + '"' + ' class = "roomButton">' + allRooms[i].room_name + '</button>';
+        }
+        for (let i = 0; i < allRooms.length; i++) {
+            document.getElementById("room_" + i).addEventListener("click", function (event) {
+                if (allRooms[i].bannedUsers.includes(user)) {
+                    alert("Sorry, you have been banned from this room");
+                }
+                else {
+                    let pass = "";
+                    let correct_pass = true;
+                    if (allRooms[i].has_pass === true) {
+                        correct_pass = false;
+                        pass = prompt("Please enter the room's password to gain access");
+                        console.log({ password: pass, id: i });
+                        socketio.emit("send_pass_to_server", { password: pass, id: i });
+                        socketio.on('pass_validator_to_client', function (data) {
+                            correct_pass = data;
+                            if (correct_pass) {
+                                alert("Access granted");
+                                //do the thing where he is redirected to room
+                            }
+                            else {
+                                alert("sorry, that was the wrong password");
+                            }
+                        });    
+                    }
+                    else {
+                        alert("Access granted");
+                        //do the thing where he is redirected to room
+                    }
+
+                }
+            }, false);
+        }
+    }
+
+    // receives any messages sent from other clients (processed by the server)
+    socketio.on("message_to_client", function (data) {
+        /* 
+        3 different cases:
+           1. undefined receiver: global message 
+           2. global user variable matches receiver: private message received
+           3. global user matches author: private message that you sent out
+        */
+        if (data["receiver"] == undefined || data["receiver"] == user || data["author"] == user) {
+            //Append an HR thematic break and the escaped HTML of the new message
+            document.getElementById("chatlog").appendChild(document.createElement("hr"));
+
+            //show author of message and content
+            let msg = data['author'] + ": " + data['message'];
+            document.getElementById("chatlog").appendChild(document.createTextNode(msg));
+        }
+    });
+
+    function sendMessage() {
+        var msg = document.getElementById("message_input").value;
+        var usr = document.getElementById("username_input").value;
+
+        // send private message info over if needed
+        if (usr != "") {
+            // socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
+            socketio.emit("message_to_server", { message: msg, author: user, receiver: usr });
+        }
+        else {
+            socketio.emit("message_to_server", { message: msg, author: user });
+        }
+    }
+
+    document.getElementById("send").addEventListener('click', sendMessage, false);
+</script>
+</body>
+<!-- <script src="lobby.js"></script> -->
+<!-- <script src = "chat_server.js"></script> -->
+</html>
