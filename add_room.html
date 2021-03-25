@@ -25,6 +25,8 @@
                 let add_name = document.getElementById("add_room_name").value;
                 let add_pwd = document.getElementById("add_room_password").value;
 
+                // TODO: make sure there's no duplicate rooms
+
                 if(add_name == ""){
                     alert("please fill out a room name!");
                 }
@@ -38,6 +40,8 @@
                     console.log({ room_name: add_name, admin: user});
                     // io.sockets.emit("add_room_to_server", { room_name: add_name, admin: user}); 
                 }
+                
+
                 
 
                 // FIXME: call refresh on list

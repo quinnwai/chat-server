@@ -1,3 +1,22 @@
+// allRooms test cases (TODO: start as empty once tested)
+let allRooms = [
+    { "roomName": "hi",
+    "roomPass": "vsvsv",
+    "activeUsers": ["quinn", "avishal"],
+    "creator": "hi",
+    "bannedUsers": ["hi", "my", "name"]
+    },
+    {"roomName": "hi2",
+    "roomPass": "",
+    "creator": "hi",
+    "activeUsers": ["quinn", "avishal"],
+    "bannedUsers": ["my", "name"] },
+{"roomName": "hi2",
+    "roomPass": "",
+    "creator": "avishal",
+    "activeUsers": ["quinn", "avishal"],
+    "bannedUsers": ["my", "name", "quinn"] }]
+
 // Require the packages we will use:
 const http = require("http"),
     fs = require("fs");
@@ -19,7 +38,6 @@ const server = http.createServer(function (req, res) {
 });
 server.listen(port);
 console.log("Server running on port", port);
-
 
 
 // Import Socket.IO and pass our HTTP server object to it.
@@ -47,5 +65,20 @@ io.sockets.on("connection", function (socket) {
             console.log("private message to " + data["receiver"]);
             io.sockets.emit("message_to_client", { message: data["message"], author: data["author"], receiver: data["receiver"] }); // broadcast the message to other users
         }
+    });
+
+    // receiving message from 
+    socket.on('get_list_to_server', function () {
+        //push relevant data (room name and password) onto list
+
+        let data = [];
+        for (let i = 0; i < allRooms.length; i++) {
+            let room = { room_name: allRooms[i].roomName, room_pass: allRooms[i].roomPass }
+            console.log(room);
+            data.push(room);
+        }
+
+        console.log("data... " + data);
+        io.sockets.emit("send_list_to_client", data);
     });
 });

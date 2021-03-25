@@ -5,11 +5,6 @@
    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 </head>
 <body>
-   <!-- login -->
-   <!-- <div class="user">
-      <label>Username: <input type="text" id="username"/> </label>
-      <button class="login">login</button>
-   </div> -->
 
    message: <input type="text" id="message_input"/>
    to (optional, private message): <input type="text" id="username_input"/>
@@ -18,15 +13,26 @@
 
    <script type ="text/javascript">
       let user = prompt("Username:");
-   
+      
+      
       var socketio = io.connect();
+
+      // get list and see what is returned
+      socketio.emit("get_list_to_server", {});
+
+      socketio.on("send_list_to_client", function(data){
+         console.log(data);
+      });
+
+      // receives any messages sent from other clients (processed by the server)
       socketio.on("message_to_client", function(data) {
          /* 
-         2 different cases:
-            1 ~ undefined receiver is a global message 
-            2 ~ global user variable matches receiver is a private message
+         3 different cases:
+            1. undefined receiver: global message 
+            2. global user variable matches receiver: private message received
+            3. global user matches author: private message that you sent out
          */
-         if(data["receiver"] == undefined || data["receiver"] == user){
+         if(data["receiver"] == undefined || data["receiver"] == user || data["author"] == user){
             //Append an HR thematic break and the escaped HTML of the new message
             document.getElementById("chatlog").appendChild(document.createElement("hr"));
    
