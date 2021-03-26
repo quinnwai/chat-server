@@ -11,13 +11,13 @@ let allRooms = [
     "roomPass": "",
     "hasPass": false,
     "creator": "hi",
-    "activeUsers": ["quinn", "avishal"],
+    "activeUsers": ["quinn", "yourmom"],
     "bannedUsers": ["my", "name"] },
-{"roomName": "hi2",
+{"roomName": "hi3",
     "roomPass": "",
     "hasPass": false,
     "creator": "avishal",
-    "activeUsers": ["quinn", "avishal"],
+    "activeUsers": ["quinn", "disknee"],
     "bannedUsers": ["my", "name", "quinn"] }]
 
 // Require the packages we will use:
@@ -83,9 +83,8 @@ io.sockets.on("connection", function (socket) {
     
     socket.on('send_button_presser_to_server', function (data) {
         //push relevant data (room name and password) onto list
-        console.log(data);
-        console.log(data["author"]);
-        io.sockets.emit("send_button_presser_to_client", {author: data["author"]})
+        console.log(data["author"], "is trying to enter the room");
+        io.sockets.emit("send_button_presser_to_client", {author: data["author"]});
     });
 
     // receiving message from 
@@ -105,7 +104,35 @@ io.sockets.on("connection", function (socket) {
     });
 
     socket.on('get_room_to_server', function (data) {
-        let response = {active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
+        //add give user to list
+        // TODO: can check if user is in list before adding to it
+        allRooms[data["room_id"]].activeUsers.push(data["author"]);
+
+        let response = {room_name: allRooms[data["room_id"]].roomName, active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
         io.sockets.emit("send_room_to_client", response);
     });
+
+    socket.on("remove_active_user", function (data) {
+        //TODO: see if more effective method exists later
+        // create list of old and new active users
+        let oldUsers = allRooms[data["room_id"]].activeUsers;
+        let newUsers = [];
+
+        // copy all users but the user leaving the room into new array
+        for(let i = 0; i < oldUsers.length; i++){
+            if(oldUsers[i] != data["author"]){
+                newUsers.push(oldUsers[i]);
+            }
+        }
+
+        // overwrite activeUsers for the current room
+        allRooms[data["room_id"]].activeUsers = newUsers;
+
+        console.log("new users:", allRooms[data["room_id"]].activeUsers);
+
+        //update everyone in the room's active users (TODO: need to put active users in a div then)
+        socket.emit('update_active_user', {room_id: data["room_id"], active_users: newUsers});
+    });
+
+    
 });

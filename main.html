@@ -10,7 +10,7 @@
 <body>
 <div id = "main">
     <div id="availableRooms">
-        <h2> Rooms </h2>
+        <h2> Lobby </h2>
             <div id="add_room">
                 <h3>Add Room</h3>
                 Room name: <input type="text" id="add_room_name" /> <br>
@@ -20,19 +20,25 @@
         <button class="roomButton"> hi man </button>
     </div>
     <div id="messageArea">
-        <h2> Send Messages </h2>
+        <!-- <h2> Send Messages </h2>
         Message: <input type="text" id="message_input" />
         To (optional, private message): <input type="text" id="username_input" />
         <button id="send">send</button>
-        <div id="chatlog"></div>
+        <div id="chatlog"></div> -->
     </div>
 </div>
 <script type="text/javascript">
+    // initial prompt for username
     let user = prompt("Username:");
-    while(user == ""){
+    while(user == "" || user == null){
         user = prompt("Username:");
     }
     
+    // function for escaping output 
+    function encodeHTML(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+
     let currentRoomId;
     let init = false;
 
@@ -57,10 +63,10 @@
         }
         for (let i = 0; i < allRooms.length; i++) {
             document.getElementById("room_" + i).addEventListener("click", function (event) {
-                // console.log("I pressed :)");
-
-                //send the name of guy who pressed button
+                // send the user who pressed the button
                 socketio.emit("send_button_presser_to_server", {author: user });
+                
+                // receive relevant information about the room
                 socketio.on('send_button_presser_to_client', function (data) {
                     if (user == data["author"]) {
                         //check if this guy is the guy who pressed the button
@@ -78,6 +84,7 @@
                                 console.log({ password: pass, id: i });
                                 socketio.emit("send_pass_to_server", { password: pass, id: i, author: user });
                                 socketio.on('pass_validator_to_client', function (data) {
+                                    console.log("time to check password");
                                     correct_pass = data["isPass"];
                                     if (user == data["author"]) {
                                         if (correct_pass) {
@@ -128,14 +135,14 @@
 
                 //create header for messages
                 header = document.createElement("h2");
-                header.textContent = "Send Messages";
+                header.textContent = encodeHTML(data["room_name"]); // note escaping output here
                 messageArea.appendChild(header);
 
-                // print out active user
+                // print out array of active users
                 usersInRoom = data["active_users"];
                 messageArea.appendChild(document.createTextNode("Active users: "));
                 for(let i = 0; i < usersInRoom.length; i++){
-                    messageArea.appendChild(document.createTextNode(usersInRoom[i]));
+                    messageArea.appendChild(document.createTextNode(encodeHTML(usersInRoom[i])));
 
                     if(i != usersInRoom.length-1){
                         messageArea.appendChild(document.createTextNode(", "));
@@ -169,16 +176,16 @@
                 // create chatlog div
                 let chatlog = document.createElement("div");
                 chatlog.id = "chatlog";
-                document.body.appendChild(chatlog);
+                messageArea.appendChild(chatlog);
 
                 // create leave button
                 let leaveButton = document.createElement("button");
                 leaveButton.id = "leave_room";
                 leaveButton.textContent = "leave room";
-                document.body.appendChild(leaveButton);
+                messageArea.appendChild(leaveButton);
 
-                //disable all buttons
-                $("button.roomButton").attr("disabled", "disabled");
+                //disable all room buttons
+                $("button.roomButton").prop("disabled",true);
 
                 // add event listener to leave button to clear out everything
                 document.getElementById("leave_room").addEventListener("click", function (){
@@ -186,13 +193,19 @@
                         messageArea.removeChild(messageArea.firstChild);
                     }
 
-                    //TODO: make sure this works on leave button
-                    // $("button.roomButton").attr("disabled", "enabled");
+                    // re-enable room buttons
+                    $("button.roomButton").prop("disabled", false);
+
+                    
+                    // remove user from list and unset currentRoomId 
+                    socketio.emit("remove_active_user", { room_id: currentRoomId, author: user });
+                    currentRoomId = -1;
                 });
             }
         });
     }
 
+    //receives any updates 
 
     // receives any messages sent from other clients (processed by the server)
     socketio.on("message_to_client", function (data) {
@@ -208,7 +221,7 @@
 
             //show author of message and content
             let msg = data['author'] + ": " + data['message'];
-            document.getElementById("chatlog").appendChild(document.createTextNode(msg));
+            document.getElementById("chatlog").appendChild(document.createTextNode(encodeHTML(msg)));
         }
     });
 
