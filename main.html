@@ -175,8 +175,8 @@
                 leaveButton.textContent = "leave room";
                 document.body.appendChild(leaveButton);
 
-                // TODO: VISHAL... add event listener here
-
+                //disable all buttons
+                $("button.roomButton").attr("disabled", "disabled");
             }
         });
     }
