@@ -81,17 +81,6 @@ io.sockets.on("connection", function (socket) {
         }
     });
 
-        socket.on('send_user_to_server', function (data) {
-        //push relevant data (room name and password) onto list
-
-        if (data["user"] = user) {
-        io.sockets.emit("send_init_to_client", false);
-        }
-        else {
-            io.sockets.emit("send_init_to_client", true);
-        }
-    });
-
     // receiving message from 
     socket.on('get_list_to_server', function () {
         //push relevant data (room name and password) onto list

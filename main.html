@@ -34,20 +34,19 @@
     }
     
     let currentRoomId;
-
+    let init = false;
 
     var socketio = io.connect();
 
     // get list and see what is returned
-    socketio.emit("get_list_to_server", {});
-
+    socketio.emit("get_list_to_server", {}); //TODO: send user over
+    
+    
     socketio.on("send_list_to_client", function (data) {
-        socketio.emit("send_user_to_server", {user: user});
-        socketio.on("send_list_to_client", function (init) {
-        if(!init){
-        showLobby(data);
+        if(!init) {
+            showLobby(data);
+            init = true;
         }
-    });
     });
 
     function showLobby(allRooms) {
@@ -187,8 +186,7 @@
             socketio.emit("message_to_server", { message: msg, author: user });
         }
     }
-
-    // document.getElementById("send").addEventListener('click', sendMessage, false);
+    
 </script>
 </body>
 <!-- <script src="lobby.js"></script> -->
