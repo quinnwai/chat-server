@@ -1,0 +1,10 @@
+//Creators of chat rooms can temporarily kick others out of the room (3 points)
+- just remove from activeUsers list
+- refresh page so the guy gets kicked out... send the dude a message saying he's been kicked out?
+- socket emit the username of the guy being banned... let there be a listener on main.html.. if user same as username send alert
+
+//Creators of chat rooms can permanently ban users from joining that particular room (2 points)
+- just add to banned users list
+- refresh page so the guy gets kicked out... send the dude a message saying he's been kicked out?
+socket emit the username of the guy being banned... let there be a listener on main.html.. if user same as username send alert
+

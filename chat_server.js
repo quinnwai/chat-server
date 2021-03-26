@@ -74,11 +74,18 @@ io.sockets.on("connection", function (socket) {
         //push relevant data (room name and password) onto list
         
         if(data["password"] === allRooms[data["id"]].roomPass){
-            io.sockets.emit("pass_validator_to_client", true);
+            io.sockets.emit("pass_validator_to_client",{isPass: true, author: data["author"]});
         }
         else {
-            io.sockets.emit("pass_validator_to_client", false);
+            io.sockets.emit("pass_validator_to_client",{isPass: false, author: data["author"]});
         }
+    });
+    
+    socket.on('send_button_presser_to_server', function (data) {
+        //push relevant data (room name and password) onto list
+        console.log(data);
+        console.log(data["author"]);
+        io.sockets.emit("send_button_presser_to_client", {author: data["author"]})
     });
 
     // receiving message from 
