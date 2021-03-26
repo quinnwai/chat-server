@@ -124,6 +124,8 @@
                     messageArea.removeChild(messageArea.firstChild);
                 }
 
+                // let messageArea = removeMessages;
+
                 //create header for messages
                 header = document.createElement("h2");
                 header.textContent = "Send Messages";
@@ -177,6 +179,16 @@
 
                 //disable all buttons
                 $("button.roomButton").attr("disabled", "disabled");
+
+                // add event listener to leave button to clear out everything
+                document.getElementById("leave_room").addEventListener("click", function (){
+                    while(messageArea.firstChild){
+                        messageArea.removeChild(messageArea.firstChild);
+                    }
+
+                    //TODO: make sure this works on leave button
+                    // $("button.roomButton").attr("disabled", "enabled");
+                });
             }
         });
     }
