@@ -39,9 +39,9 @@
     var socketio = io.connect();
 
     // get list and see what is returned
-    socketio.emit("get_list_to_server", {}); //TODO: send user over
+    socketio.emit("get_list_to_server", {});
     
-    
+
     socketio.on("send_list_to_client", function (data) {
         if(!init) {
             showLobby(data);
@@ -57,7 +57,8 @@
         }
         for (let i = 0; i < allRooms.length; i++) {
             document.getElementById("room_" + i).addEventListener("click", function (event) {
-                console.log("I pressed :)");
+                // console.log("I pressed :)");
+
                 //send the name of guy who pressed button
                 socketio.emit("send_button_presser_to_server", {author: user });
                 socketio.on('send_button_presser_to_client', function (data) {
@@ -111,18 +112,24 @@
         
         // get active users and print them
         socketio.on("send_room_to_client", function (data) {
+             // make sure this is the right user 
             if (user == data["receiver"]) {
-            // clear out everything in div
-            // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
-            let messageArea = document.getElementById("messageArea");
-            while(messageArea.firstChild){
-                messageArea.removeChild(messageArea.firstChild);
-            }
 
-            console.log(data);
-            
-            // make sure this is the right user 
-            
+                //get message div area
+                let messageArea = document.getElementById("messageArea");
+
+                // clear out everything in div
+                // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
+                while(messageArea.firstChild){
+                    messageArea.removeChild(messageArea.firstChild);
+                }
+
+                //create header for messages
+                header = document.createElement("h2");
+                header.textContent = "Send Messages";
+                messageArea.appendChild(header);
+
+                // print out active user
                 usersInRoom = data["active_users"];
                 messageArea.appendChild(document.createTextNode("Active users: "));
                 for(let i = 0; i < usersInRoom.length; i++){
@@ -133,10 +140,8 @@
                     }
                 }
 
-                //create header for messages
-                header = document.createElement("h2");
-                header.textContent = "Send Messages";
-                messageArea.appendChild(header);
+                // add break
+                messageArea.appendChild(document.createElement("br"));
         
                 // create message and username (for dms) HTML inputs
                 messageArea.appendChild(document.createTextNode("message:"));
@@ -163,6 +168,15 @@
                 let chatlog = document.createElement("div");
                 chatlog.id = "chatlog";
                 document.body.appendChild(chatlog);
+
+                // create leave button
+                let leaveButton = document.createElement("button");
+                leaveButton.id = "leave_room";
+                leaveButton.textContent = "leave room";
+                document.body.appendChild(leaveButton);
+
+                // TODO: VISHAL... add event listener here
+
             }
         });
     }
@@ -199,7 +213,7 @@
             socketio.emit("message_to_server", { message: msg, author: user });
         }
     }
-    
+
 </script>
 </body>
 <!-- <script src="lobby.js"></script> -->
