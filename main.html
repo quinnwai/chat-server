@@ -1,26 +1,25 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <style>
-    </style>
+    <title>Chat Room: client-serving content from server</title>
     <link rel="stylesheet" type="text/css" href="main.css" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 </head>
 
 <body>
-<div id = "main">
+<div id="main">
     <div id="availableRooms">
         <h2> Lobby </h2>
-            <div id="add_room">
-                <h3>Add Room</h3>
-                Room name: <input type="text" id="add_room_name" /> <br>
-                Password (optional): <input type="password" id="add_room_password" />
-                <button id="add">add</button>
-            </div>
-        <button class="roomButton"> hi man </button>
+        <div id="add_room">
+            <h3>Add Room</h3>
+            <label>Room name:</label><input type="text" id="add_room_name" /> <br>
+            <label>Password (optional):</label><input type="password" id="add_room_password" />
+            <!-- <button id="add">add</button> -->
+        </div>
+        <!-- <button class="roomButton"> hi man </button> -->
     </div>
+    <button id="add">add</button>
     <div id="messageArea">
         <!-- <h2> Send Messages </h2>
         Message: <input type="text" id="message_input" />
@@ -29,27 +28,67 @@
         <div id="chatlog"></div> -->
     </div>
 </div>
-<script type="text/javascript">
+<script>
     // initial prompt for username
-    let user = prompt("Username:");
+    let user = prompt("Welcome to Chat Room!\nUsername:");
+
     while(user == "" || user == null){
-        user = prompt("Username:");
+        user = prompt("Please enter a non-empty username. \nUsername:");
     }
+
+    // other global variables
+    let currentRoomId;
+    let init = false;
+
+    //send information and store socket username with associated id for disconnect TODO but can omit
+    // socketio.emit('store_username_with_id', {username : user});
     
     // function for escaping output 
     function encodeHTML(s) {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
     }
 
-    let currentRoomId;
-    let init = false;
-
     var socketio = io.connect();
 
-    // get list and see what is returned
+    // event listener/functionality to add a room
+    // add_div = document.getElementById("add_room");
+    document.getElementById("add").addEventListener("click", function () {
+        //send stuff over to client
+        let add_name = document.getElementById("add_room_name").value;
+        let add_pwd = document.getElementById("add_room_password").value;
+
+        // TODO: make sure there's no duplicate rooms
+
+        if(add_name == ""){
+            alert("please fill out a room name!");
+        }
+        else{
+            if(add_pwd != ""){
+                // console.log({ room_name: add_name, admin: user, password: add_pwd});
+                //TODO: make sure emit calls are matching on calls in chat
+                socketio.emit("add_room_to_server", { room_name: add_name, admin: user, password: add_pwd}); 
+            }
+            else {
+                // console.log({ room_name: add_name, admin: user});
+                socketio.emit("add_room_to_server", { room_name: add_name, admin: user}); 
+            }
+        }
+    }, false);
+
+    // associated with above add room function
+    // updates list if room is added
+    socketio.on("update_list_to_client", function (data) {
+            // TODO: remove all buttons and call refresh on list
+            roomButtons = document.getElementsByClassName("roomButton");
+            for(let i = roomButtons.length-1; i >= 0; i--){
+                roomButtons[i].remove();
+            }
+            showLobby(data);
+        });
+
+    // get list from server. If uninitialized, initialize buttons
     socketio.emit("get_list_to_server", {});
     
-
     socketio.on("send_list_to_client", function (data) {
         if(!init) {
             showLobby(data);
@@ -59,10 +98,14 @@
 
     function showLobby(allRooms) {
         console.log(allRooms);
+
+        // add buttons for each room
         for (let i = 0; i < allRooms.length; i++) {
             document.getElementById("availableRooms").innerHTML +=
                 '<button id = "room_' + i + '"' + ' class = "roomButton">' + allRooms[i].room_name + '</button>';
         }
+
+        // add event listeners for each button
         for (let i = 0; i < allRooms.length; i++) {
             document.getElementById("room_" + i).addEventListener("click", function (event) {
                 // send the user who pressed the button
@@ -128,43 +171,45 @@
                 let messageArea = document.getElementById("messageArea");
 
                 // clear out everything in div
-                // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
-                while(messageArea.firstChild){
-                    messageArea.removeChild(messageArea.firstChild);
-                }
-
-                // let messageArea = removeMessages;
+                deleteChildren(messageArea);
 
                 //create header for messages
-                header = document.createElement("h2");
+                let header = document.createElement("h2");
                 header.textContent = encodeHTML(data["room_name"]); // note escaping output here
                 messageArea.appendChild(header);
 
                 // print out array of active users
                 usersInRoom = data["active_users"];
-                messageArea.appendChild(document.createTextNode("Active users: "));
+                let para = document.createElement("p");
+                para.id = "active_users";
+
+                // loops through each user to add it as text node;
+                para.appendChild(document.createTextNode("Active users: "));
                 for(let i = 0; i < usersInRoom.length; i++){
-                    messageArea.appendChild(document.createTextNode(encodeHTML(usersInRoom[i])));
+                    para.appendChild(document.createTextNode(encodeHTML(usersInRoom[i])));
 
                     if(i != usersInRoom.length-1){
-                        messageArea.appendChild(document.createTextNode(", "));
+                        para.appendChild(document.createTextNode(", "));
                     }
                 }
 
+                // add all users in list
+                messageArea.appendChild(para);
+
                 // add break
-                messageArea.appendChild(document.createElement("br"));
+                // messageArea.appendChild(document.createElement("br"));
         
                 // create message and username (for dms) HTML inputs
                 messageArea.appendChild(document.createTextNode("message:"));
                 msg_input = document.createElement("input");
                 msg_input.type = "text";
-                msg_input.id = "message_input"
+                msg_input.id = "message_input";
                 messageArea.appendChild(msg_input);
         
                 messageArea.appendChild(document.createTextNode(" to (optional, private message):"));
                 usr_input = document.createElement("input");
                 usr_input.type = "text";
-                usr_input.id = "username_input"
+                usr_input.id = "username_input";
                 messageArea.appendChild(usr_input);
         
                 // create button w/ send message listener
@@ -190,10 +235,9 @@
                 $("button.roomButton").prop("disabled",true);
 
                 // add event listener to leave button to clear out everything
-                document.getElementById("leave_room").addEventListener("click", function (){
-                    while(messageArea.firstChild){
-                        messageArea.removeChild(messageArea.firstChild);
-                    }
+                document.getElementById("leave_room").addEventListener('click', function (){
+                    //get rid of all messaging elements 
+                    deleteChildren(messageArea);
 
                     // re-enable room buttons
                     $("button.roomButton").prop("disabled", false);
@@ -207,26 +251,60 @@
         });
     }
 
-    //receives any updates 
+    // updating list of room (TODO: not working to update active users list)
+    socketio.on("update_active_users", function (data) {
+        console.log("updating active users"); //debug
 
-    // receives any messages sent from other clients (processed by the server)
-    socketio.on("message_to_client", function (data) {
-        /* 
-        3 different cases:
-           1. undefined receiver: global message 
-           2. global user variable matches receiver: private message received
-           3. global user matches author: private message that you sent out
-        */
-        if (data["receiver"] == undefined || data["receiver"] == user || data["author"] == user) {
-            //Append an HR thematic break and the escaped HTML of the new message
-            document.getElementById("chatlog").appendChild(document.createElement("hr"));
+        //if in same room as update, reload the active users
+        if(currentRoomId == data["room_id"]){
+            let allUsers = document.getElementById("active_users");
+            
+            //remove users first
+            deleteChildren(allUsers);
 
-            //show author of message and content
-            let msg = data['author'] + ": " + data['message'];
-            document.getElementById("chatlog").appendChild(document.createTextNode(encodeHTML(msg)));
+            //re-print the list
+            for(let i = 0; i < usersInRoom.length; i++){
+                allUsers.appendChild(document.createTextNode(encodeHTML(usersInRoom[i])));
+
+                if(i != usersInRoom.length-1){
+                    allUsers.appendChild(document.createTextNode(", "));
+                }
+            }
         }
     });
 
+    function deleteChildren(element){
+        // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
+
+        while(element.firstChild){
+            element.removeChild(messageArea.firstChild);
+        }
+    }
+
+    // receives any messages sent from other clients (processed by the server)
+    socketio.on("message_to_client", function (data) {
+
+        //ensure sending correct room, then...
+        if(currentRoomId == data["room_id"]){
+            /* 
+            3 different cases:
+            1. undefined receiver: global message 
+            2. global user variable matches receiver: private message received
+            3. global user matches author: private message that you sent out
+            */
+            if (data["receiver"] == undefined || data["receiver"] == user || data["author"] == user) {
+                //Append an HR thematic break and the escaped HTML of the new message
+                document.getElementById("chatlog").appendChild(document.createElement("hr"));
+
+                //show author of message and content
+                let msg = data['author'] + ": " + data['message'];
+                document.getElementById("chatlog").appendChild(document.createTextNode(encodeHTML(msg)));
+            }
+        }
+        
+    });
+
+    // general purpose method to send message to user
     function sendMessage() {
         var msg = document.getElementById("message_input").value;
         var usr = document.getElementById("username_input").value;
@@ -234,15 +312,12 @@
         // send private message info over if needed
         if (usr != "") {
             // socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
-            socketio.emit("message_to_server", { message: msg, author: user, receiver: usr });
+            socketio.emit("message_to_server", { room_id: currentRoomId, message: msg, author: user, receiver: usr });
         }
         else {
-            socketio.emit("message_to_server", { message: msg, author: user });
+            socketio.emit("message_to_server", { room_id: currentRoomId, message: msg, author: user });
         }
     }
-
 </script>
 </body>
-<!-- <script src="lobby.js"></script> -->
-<!-- <script src = "chat_server.js"></script> -->
 </html>
