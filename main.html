@@ -76,7 +76,7 @@
     }, false);
 
     // associated with above add room function
-    // updates list if room is added
+    // updates list if room is added/deleted
     socketio.on("update_list_to_client", function (data) {
             // TODO: remove all buttons and call refresh on list
             roomButtons = document.getElementsByClassName("roomButton");
@@ -263,10 +263,10 @@
             deleteChildren(allUsers);
 
             //re-print the list
-            for(let i = 0; i < usersInRoom.length; i++){
-                allUsers.appendChild(document.createTextNode(encodeHTML(usersInRoom[i])));
+            for(let i = 0; i < data["active_users"].length; i++){
+                allUsers.appendChild(document.createTextNode(encodeHTML(data["active_users"][i])));
 
-                if(i != usersInRoom.length-1){
+                if(i != data["active_users"].length-1){
                     allUsers.appendChild(document.createTextNode(", "));
                 }
             }
@@ -277,7 +277,7 @@
         // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
 
         while(element.firstChild){
-            element.removeChild(messageArea.firstChild);
+            element.removeChild(element.firstChild);
         }
     }
 

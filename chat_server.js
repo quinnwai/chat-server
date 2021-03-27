@@ -4,7 +4,7 @@ let allRooms = [
     "roomPass": "vsvsv",
     "hasPass": true,
     "activeUsers": ["quinn", "avishal"],
-    "creator": "hi",
+    "creator": "qwong",
     "bannedUsers": ["hi", "my", "name"]
     },
     {"roomName": "hi2",
@@ -161,7 +161,8 @@ io.sockets.on("connection", function (socket) {
         }
 
         let response = {room_name: allRooms[data["room_id"]].roomName, active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
-        io.sockets.emit("send_room_to_client", response);
+        socket.emit("send_room_to_client", response);
+        io.sockets.emit('update_active_users', {room_id: data["room_id"], active_users: allRooms[data["room_id"]].activeUsers});
     });
 
     socket.on("remove_active_user", function (data) {
@@ -183,7 +184,7 @@ io.sockets.on("connection", function (socket) {
         console.log("new users:", allRooms[data["room_id"]].activeUsers);
 
         //update everyone in the room's active users
-        socket.emit('update_active_users', {room_id: data["room_id"], active_users: newUsers});
+        io.sockets.emit('update_active_users', {room_id: data["room_id"], active_users: newUsers});
     });   
 });
 
