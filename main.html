@@ -17,9 +17,11 @@
             <label>Password (optional):</label><input type="password" id="add_room_password" />
             <!-- <button id="add">add</button> -->
         </div>
+        <div><br> <button id="add">Add</button></div>
+        <h2> Rooms </h2>
         <!-- <button class="roomButton"> hi man </button> -->
     </div>
-    <div> <button id="add">add</button></div>
+    
     <div id="messageArea">
         <!-- <h2> Send Messages </h2>
         Message: <input type="text" id="message_input" />
@@ -217,7 +219,7 @@
                 // create leave button
                 let leaveButton = document.createElement("button");
                 leaveButton.id = "leave_room";
-                leaveButton.textContent = "leave room";
+                leaveButton.textContent = "Leave room";
                 messageArea.appendChild(leaveButton);
 
                 //disable all room buttons
