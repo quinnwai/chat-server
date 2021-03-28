@@ -377,12 +377,20 @@
             2. global user variable matches receiver: private message received
             3. global user matches author: private message that you sent out
             */
-            if (data["receiver"] == undefined || data["receiver"] == user || data["author"] == user) {
+            if (data["receiver"] == undefined) {
                 //Append an HR thematic break and the escaped HTML of the new message
                 document.getElementById("chatlog").appendChild(document.createElement("hr"));
 
                 //show author of message and content
                 let msg = data['author'] + ": " + data['message'];
+                document.getElementById("chatlog").appendChild(document.createTextNode(encodeHTML(msg)));
+            }
+            else if(data["receiver"] == user || data["author"] == user){
+                //Append an HR thematic break and the escaped HTML of the new message
+                document.getElementById("chatlog").appendChild(document.createElement("hr"));
+
+                //show author of message and content
+                let msg = data['author'] + " (private): " + data['message'];
                 document.getElementById("chatlog").appendChild(document.createTextNode(encodeHTML(msg)));
             }
         }
