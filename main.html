@@ -102,8 +102,9 @@
 
         // add buttons for each room
         for (let i = 0; i < allRooms.length; i++) {
-            document.getElementById("availableRooms").innerHTML +=
-                '<button id = "room_' + i + '"' + ' class = "roomButton">' + allRooms[i].room_name + '</button>';
+            createHtmlButton(document.getElementById("availableRooms"), "room_" + i, "roomButton", allRooms[i].room_name)
+            // document.getElementById("availableRooms").innerHTML +=
+                // '<button id = "room_' + i + '"' + ' class = "roomButton">' + allRooms[i].room_name + '</button>';
         }
 
         // add event listeners for each button
@@ -204,7 +205,7 @@
                 createHtmlInput(messageArea, " to (optional, private message): ", "username_input");
 
                 // create button w/ send message listener
-                createHtmlButton(messageArea, "send_message", "send");
+                createHtmlButton(messageArea, "send_message", "", "send");
         
                 document.getElementById("send_message").addEventListener('click', sendMessage, false);
                 
@@ -236,11 +237,11 @@
 
                     // add kick input + button
                     createHtmlInput(messageArea, "Kick: ", "kick_username");
-                    createHtmlButton(messageArea, "kick", "kick");
+                    createHtmlButton(messageArea, "kick", "", "kick");
 
                     // add ban input + button
                     createHtmlInput(messageArea, " Ban: ", "ban_username");
-                    createHtmlButton(messageArea, "ban", "ban");
+                    createHtmlButton(messageArea, "ban","", "ban");
 
                     // add kick event listener
                     document.getElementById("kick").addEventListener("click", function() {
@@ -285,9 +286,10 @@
     function to add HTML button
     params: area (div where button is created), id (id of button), text (text inside the button)
     */
-    function createHtmlButton(area, id, text){
+    function createHtmlButton(area, id, className, text){
         let button = document.createElement("button");
         button.id = id;
+        button.className = className;
         button.textContent = text;
         area.appendChild(button);
     }
