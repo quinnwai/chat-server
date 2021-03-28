@@ -19,7 +19,7 @@
         </div>
         <!-- <button class="roomButton"> hi man </button> -->
     </div>
-    <button id="add">add</button>
+    <div> <button id="add">add</button></div>
     <div id="messageArea">
         <!-- <h2> Send Messages </h2>
         Message: <input type="text" id="message_input" />
@@ -32,16 +32,14 @@
     // initial prompt for username
     let user = prompt("Welcome to Chat Room!\nUsername:");
 
+    // ensure non-empty username given and cancel does not circumvent entering username
     while(user == "" || user == null){
         user = prompt("Please enter a non-empty username. \nUsername:");
     }
 
-    // other global variables
+    // global variables
     let currentRoomId;
     let init = false;
-
-    //send information and store socket username with associated id for disconnect TODO but can omit
-    // socketio.emit('store_username_with_id', {username : user});
     
     // function for escaping output 
     function encodeHTML(s) {
@@ -49,6 +47,9 @@
     }
 
     var socketio = io.connect();
+
+    // send information and store socket username with associated id for disconnect TODO but can omit
+    socketio.emit('store_username_with_id', {username: user});
 
     // event listener/functionality to add a room
     // add_div = document.getElementById("add_room");
@@ -108,12 +109,14 @@
         // add event listeners for each button
         for (let i = 0; i < allRooms.length; i++) {
             document.getElementById("room_" + i).addEventListener("click", function (event) {
-                // send the user who pressed the button
-                socketio.emit("send_button_presser_to_server", {author: user });
-                
-                // receive relevant information about the room
-                socketio.on('send_button_presser_to_client', function (data) {
-                    if (user == data["author"]) {
+
+                // // send the user who pressed the button
+                // socketio.emit("send_button_presser_to_server", {author: user });
+
+                // // receive relevant information about the room
+                // socketio.on('send_button_presser_to_client', function (data) {
+                //     if (user == data["author"]) {
+                        console.log("user is author");
                         //check if this guy is the guy who pressed the button
                         if (allRooms[i].bannedUsers.includes(user)) {
                             alert("Sorry, you have been banned from this room");
@@ -127,22 +130,7 @@
                                 pass = prompt("Please enter the room's password to gain access");
                                 }
                                 console.log({ password: pass, id: i });
-                                socketio.emit("send_pass_to_server", { password: pass, id: i, author: user });
-                                socketio.on('pass_validator_to_client', function (data) {
-                                    console.log("time to check password");
-                                    correct_pass = data["isPass"];
-                                    if (user == data["author"]) {
-                                        if (correct_pass) {
-                                            alert("Access granted");
-                                            //do the thing where he is redirected to room
-                                            currentRoomId = i;
-                                            showRoom(currentRoomId);
-                                        }
-                                        else {
-                                            alert("sorry, that was the wrong password");
-                                        }
-                                    }
-                                });
+                                socketio.emit("send_pass_to_server", { password: pass, room_id: i, author: user });
                             }
                             else {
                                 alert("Access granted");
@@ -152,11 +140,26 @@
                             }
 
                         }
-                    }
-                })
+                //     }
+                // })
             }, false);
         }
     }
+
+    // check if passwword is correct or not
+    socketio.on('pass_validator_to_client', function (data) {
+        console.log("time to check password");
+        correct_pass = data["isPass"];
+        if (correct_pass) {
+            alert("Access granted");
+            //do the thing where he is redirected to room
+            currentRoomId = data["room_id"];
+            showRoom(currentRoomId);
+        }
+        else {
+            alert("sorry, that was the wrong password");
+        }
+    });
 
     // shows the message stuff; shows user names
     function showRoom(roomId){
@@ -195,28 +198,13 @@
 
                 // add all users in list
                 messageArea.appendChild(para);
-
-                // add break
-                // messageArea.appendChild(document.createElement("br"));
         
                 // create message and username (for dms) HTML inputs
-                messageArea.appendChild(document.createTextNode("message:"));
-                msg_input = document.createElement("input");
-                msg_input.type = "text";
-                msg_input.id = "message_input";
-                messageArea.appendChild(msg_input);
-        
-                messageArea.appendChild(document.createTextNode(" to (optional, private message):"));
-                usr_input = document.createElement("input");
-                usr_input.type = "text";
-                usr_input.id = "username_input";
-                messageArea.appendChild(usr_input);
-        
+                createHtmlInput(messageArea, "message: ", "message_input");
+                createHtmlInput(messageArea, " to (optional, private message): ", "username_input");
+
                 // create button w/ send message listener
-                let button = document.createElement("button");
-                button.id = "send_message";
-                button.textContent = "send";
-                messageArea.appendChild(button);
+                createHtmlButton(messageArea, "send_message", "send");
         
                 document.getElementById("send_message").addEventListener('click', sendMessage, false);
                 
@@ -236,25 +224,128 @@
 
                 // add event listener to leave button to clear out everything
                 document.getElementById("leave_room").addEventListener('click', function (){
-                    //get rid of all messaging elements 
-                    deleteChildren(messageArea);
-
-                    // re-enable room buttons
-                    $("button.roomButton").prop("disabled", false);
-
-                    
-                    // remove user from list and unset currentRoomId 
-                    socketio.emit("remove_active_user", { room_id: currentRoomId, author: user });
-                    currentRoomId = -1;
+                    exitRoom(messageArea, user);
                 });
+
+                //enable admin privileges if admin
+                if(data["is_admin"]){
+                    //create title for admin
+                    let adminHeader = document.createElement("h2");
+                    adminHeader.textContent = "Admin Privileges"; // note escaping output here
+                    messageArea.appendChild(adminHeader);
+
+                    // add kick input + button
+                    createHtmlInput(messageArea, "Kick: ", "kick_username");
+                    createHtmlButton(messageArea, "kick", "kick");
+
+                    // add ban input + button
+                    createHtmlInput(messageArea, " Ban: ", "ban_username");
+                    createHtmlButton(messageArea, "ban", "ban");
+
+                    // add kick event listener
+                    document.getElementById("kick").addEventListener("click", function() {
+                        // store kicked user
+                        let kicked = document.getElementById("kick_username").value;
+                        document.getElementById("kick_username").value = "";
+
+                        // make user exit room
+                        exitRoom(messageArea, kicked, "kick");
+                    });
+
+                    // add ban event listener
+                    document.getElementById("ban").addEventListener("click", function() {
+                        // stored banned user
+                        let banned = document.getElementById("ban_username").value;
+                        document.getElementById("ban_username").value = "";
+
+                        // add element to banned users
+                        socketio.emit("add_banned_user", { room_id: currentRoomId, author: user , banned_user: banned });
+
+                        //emit same message to trigger user out of the room
+                        exitRoom(messageArea, banned, "ban");
+                    });
+                }
             }
         });
     }
 
-    // updating list of room (TODO: not working to update active users list)
-    socketio.on("update_active_users", function (data) {
-        console.log("updating active users"); //debug
+    /*
+    function to add HTML input
+    params: area (div where input is created), label (what to label input), id (id of input)
+    */
+    function createHtmlInput(area, label, id){
+        area.appendChild(document.createTextNode(label));
+        let input = document.createElement("input");
+        input.type = "text";
+        input.id = id;
+        area.appendChild(input);
+    }
 
+    /*
+    function to add HTML button
+    params: area (div where button is created), id (id of button), text (text inside the button)
+    */
+    function createHtmlButton(area, id, text){
+        let button = document.createElement("button");
+        button.id = id;
+        button.textContent = text;
+        area.appendChild(button);
+    }
+    
+    /*
+    function to make a user leave the room (Ex: leave room button, kicked, banned)
+    params: area (div where room is located)
+    */
+    function exitRoom(area, username, reason = "leave"){
+        // need to make sure deletion happens to specific client
+        // purpose allows us to send specific alert to kicked vs banned user when data is sent back
+        socketio.emit("clear_room_to_server", {target: username, purpose: reason});
+        
+
+        // remove user from list
+        socketio.emit("remove_active_user", { room_id: currentRoomId, author: username });
+    }
+
+    /*
+    associated function to ensure deletion occurs for either...
+    (1) leave room button-clicker, (2) kicked user (3) banned user
+    */
+    socketio.on("clear_room_to_client", function(data) {
+        if(user == data["target"]){
+            //get rid of all messaging elements 
+            deleteChildren(document.getElementById("messageArea"));
+
+            // re-enable room buttons
+            $("button.roomButton").prop("disabled", false);
+
+            // if kicked or banned, alert
+            if(data["purpose"] == "kick"){
+                alert("You have been kicked from the room");
+            }
+            else if(data["purpose"] == "ban"){
+                alert("You have been banned from the room");
+            }
+
+            //unset currentRoomId
+            currentRoomId = -1;
+        }
+    });
+        
+
+    /*
+    function to delete all children of a given div
+    params: element (div in question)
+    */
+    function deleteChildren(element){
+        // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
+
+        while(element.firstChild){
+            element.removeChild(element.firstChild);
+        }
+    }
+
+    // updates active users lists for a given room
+    socketio.on("update_active_users", function (data) {
         //if in same room as update, reload the active users
         if(currentRoomId == data["room_id"]){
             let allUsers = document.getElementById("active_users");
@@ -273,13 +364,7 @@
         }
     });
 
-    function deleteChildren(element){
-        // Source: https://www.javascripttutorial.net/dom/manipulating/remove-all-child-nodes/
-
-        while(element.firstChild){
-            element.removeChild(element.firstChild);
-        }
-    }
+    
 
     // receives any messages sent from other clients (processed by the server)
     socketio.on("message_to_client", function (data) {
@@ -306,12 +391,14 @@
 
     // general purpose method to send message to user
     function sendMessage() {
+        // get elements and reset input contents
         var msg = document.getElementById("message_input").value;
         var usr = document.getElementById("username_input").value;
+        document.getElementById("message_input").value = "";
+        document.getElementById("username_input").value = "";
 
         // send private message info over if needed
         if (usr != "") {
-            // socketio.emit("message_to_server", {message: msg, author: user, receiver: usr });
             socketio.emit("message_to_server", { room_id: currentRoomId, message: msg, author: user, receiver: usr });
         }
         else {

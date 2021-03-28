@@ -59,9 +59,9 @@ io.sockets.on("connection", function (socket) {
         let usr = data["username"];
 
         if(!liveUsers.includes(usr)){
-            liveUsers[socket.id] = usr;
+            liveUsers[usr] = socket.id;
         };
-        console.log("socket id:". socket.id, "username:", liveUsers[socket.id]);
+        console.log("liveUsers:", liveUsers);
     });
 
     socket.on('add_room_to_server', function (data) {
@@ -94,7 +94,7 @@ io.sockets.on("connection", function (socket) {
         io.sockets.emit("update_list_to_client", newList);
     });
 
-    // if user/socket disconnects ... TODO but can also omit
+    // if user/socket disconnects ... TODO for creative portion but can also omit
     // socket.on('disconnecting', () => {
     //     // get username
     //     let usr = liveUsers[socket.id];
@@ -125,22 +125,25 @@ io.sockets.on("connection", function (socket) {
             io.sockets.emit("message_to_client", { room_id: data["room_id"], message: data["message"], author: data["author"], receiver: data["receiver"] }); // broadcast the message to other users
         }
     });
-    //receive password
-        socket.on('send_pass_to_server', function (data) {
-        //push relevant data (room name and password) onto list
-        
-        if(data["password"] === allRooms[data["id"]].roomPass){
-            io.sockets.emit("pass_validator_to_client",{isPass: true, author: data["author"]});
-        }
-        else {
-            io.sockets.emit("pass_validator_to_client",{isPass: false, author: data["author"]});
-        }
-    });
-    
+
+
     socket.on('send_button_presser_to_server', function (data) {
         //push relevant data (room name and password) onto list
         console.log(data["author"], "is trying to enter the room");
-        io.sockets.emit("send_button_presser_to_client", {author: data["author"]});
+        socket.emit("send_button_presser_to_client", {room_id: data["room_id"], author: data["author"]});
+    });
+
+    //receive password
+    socket.on('send_pass_to_server', function (data) {
+        //push relevant data (room name and password) onto list
+        console.log("send pass to server");
+        
+        if(data["password"] === allRooms[data["room_id"]].roomPass){
+            socket.emit("pass_validator_to_client",{isPass: true, room_id: data["room_id"], author: data["author"]});
+        }
+        else {
+            socket.emit("pass_validator_to_client",{isPass: false, room_id: data["room_id"], author: data["author"]});
+        }
     });
 
     // receiving message from 
@@ -149,19 +152,31 @@ io.sockets.on("connection", function (socket) {
 
         let data = sendList();
 
-        console.log("data... " + data);
         io.sockets.emit("send_list_to_client", data);
     });
 
     socket.on('get_room_to_server', function (data) {
-        //add give user to list
-        // TODO: can check if user is in list before adding to it
+        // Adds given user to list if not already in list
+        console.log('get_room_to_server');
+        console.log("room id", data["room_id"]);
+        console.log("room: ", allRooms[data["room_id"]]);
         if(!(allRooms[data["room_id"]].activeUsers.includes(data["author"]))){
             allRooms[data["room_id"]].activeUsers.push(data["author"]);
         }
 
-        let response = {room_name: allRooms[data["room_id"]].roomName, active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
+        // check if author is admin and add admin privileges
+        let isAdmin = false;
+        if (data["author"] == allRooms[data["room_id"]].creator){
+            console.log(data["author"], "is the creator");
+            isAdmin = true;
+        }
+
+        // send room data
+        let response = {room_name: allRooms[data["room_id"]].roomName, is_admin: isAdmin, active_users: allRooms[data["room_id"]].activeUsers, receiver: data["author"]};
+        console.log("sending room info : ");
         socket.emit("send_room_to_client", response);
+
+        // update active users for users already in room
         io.sockets.emit('update_active_users', {room_id: data["room_id"], active_users: allRooms[data["room_id"]].activeUsers});
     });
 
@@ -186,6 +201,20 @@ io.sockets.on("connection", function (socket) {
         //update everyone in the room's active users
         io.sockets.emit('update_active_users', {room_id: data["room_id"], active_users: newUsers});
     });   
+
+    socket.on("add_banned_user", function (data) {
+        //ensure request coming from creator of room before pushing banned user
+        if(data["author"] == allRooms[data["room_id"]].creator){
+            allRooms[data["room_id"]].bannedUsers.push(data["banned_user"]);   
+        }
+
+        console.log("new banned users: ", allRooms[data["room_id"]].bannedUsers);
+    });
+    
+    socket.on("clear_room_to_server", function (data) {
+        io.sockets.emit("clear_room_to_client", data);
+    });
+
 });
 
 function sendList(){
@@ -196,6 +225,5 @@ function sendList(){
         console.log(room);
         data.push(room);
     }
-
     return data;
 }
