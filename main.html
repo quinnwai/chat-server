@@ -126,7 +126,7 @@
                             let correct_pass = true;
                             if (allRooms[i].has_pass === true) {
                                 correct_pass = false;
-                                while (pass == ""){
+                                while (pass == "" || pass == null){
                                 pass = prompt("Please enter the room's password to gain access");
                                 }
                                 console.log({ password: pass, id: i });
