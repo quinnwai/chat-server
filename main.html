@@ -225,6 +225,9 @@
         
                 // create message and username (for dms) HTML inputs
                 createHtmlInput(messageArea, "Message: ", "message_input");
+                let pmOpt = data["active_users"];
+                pmOpt.unshift("");
+                
                 createHtmlDropdown(messageArea, " To (optional, private message): ", "username_input", data["active_users"]);
 
                 // create button w/ send message listener

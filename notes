@@ -9,5 +9,5 @@
 socket emit the username of the guy being banned... let there be a listener on main.html.. if user same as username send alert
 
 TODO
-Add dropdown for ban,kick, to(priv message)
+Fix Readme
 Test with edge case
