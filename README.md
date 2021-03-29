@@ -8,7 +8,9 @@ http://ec2-18-219-113-131.us-east-2.compute.amazonaws.com:3456/main.html
 
 ## Creative Portion
 Stylesheet
-- [insert stuff here]
+- Downloaded and installed express package so the whole directory could be served instead of a single file
+- Because of express, was able to add CSS styling to whole page for easier usage and aesthetic purposes
+- Added a dark mode and light mode option which changes all the colors on the screen to the chosen mode
 
 
 Delete Room
