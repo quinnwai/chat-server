@@ -97,7 +97,7 @@
     // associated with above add room function
     // updates list if room is added/deleted
     socketio.on("update_list_to_client", function (data) {
-            // TODO: remove all buttons and call refresh on list
+            // remove all buttons and call refresh on list
             roomButtons = document.getElementsByClassName("roomButton");
             for(let i = roomButtons.length-1; i >= 0; i--){
                 roomButtons[i].remove();
@@ -120,7 +120,7 @@
 
         // add buttons for each room
         for (let i = 0; i < allRooms.length; i++) {
-            createHtmlButton(document.getElementById("availableRooms"), "room_" + i, "roomButton", allRooms[i].room_name)
+            createHtmlButton(document.getElementById("availableRooms"), "room_" + i, "roomButton", allRooms[i].room_name);
             // document.getElementById("availableRooms").innerHTML +=
                 // '<button id = "room_' + i + '"' + ' class = "roomButton">' + allRooms[i].room_name + '</button>';
         }
@@ -152,10 +152,11 @@
                                 socketio.emit("send_pass_to_server", { password: pass, room_id: i, author: user });
                             }
                             else {
-                                alert("Access granted");
+                                // alert("Access granted");
+                                
+                                // update room id, create messaging area
                                 currentRoomId = i;
                                 showRoom(currentRoomId);
-                                //do the thing where he is redirected to room
                             }
 
                         }
@@ -344,11 +345,24 @@
             }
             else if(data["purpose"] == "ban"){
                 alert("You have been banned from the room");
+
+                // get rid of buttons
+                roomButtons = document.getElementsByClassName("roomButton");
+                for(let i = roomButtons.length-1; i >= 0; i--){
+                    roomButtons[i].remove();
+                }
+                
+                // emit to refresh buttons
+                socketio.emit("refresh_rooms_to_server");
             }
 
             //unset currentRoomId
             currentRoomId = -1;
         }
+    });
+
+    socketio.on("refresh_rooms_to_client", function (data){
+        showLobby(data);
     });
         
 

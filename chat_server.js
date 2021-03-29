@@ -215,6 +215,11 @@ io.sockets.on("connection", function (socket) {
         io.sockets.emit("clear_room_to_client", data);
     });
 
+    socket.on("refresh_rooms_to_server", function (){
+        socket.emit("refresh_rooms_to_client", sendList());
+    });
+    
+
 });
 
 function sendList(){
