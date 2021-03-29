@@ -27,48 +27,46 @@
         
     </div>
     
-    <div id="messageArea">
-        <!-- <h2> Send Messages </h2>
-        Message: <input type="text" id="message_input" />
-        To (optional, private message): <input type="text" id="username_input" />
-        <button id="send">send</button>
-        <div id="chatlog"></div> -->
-    </div>
+    <div id="messageArea"></div>
 </div>
 <script>
-    // initial prompt for username
-    let user = prompt("Welcome to Chat Room!\nUsername:");
+    // set up socket and get users currently on page
+    let socketio = io.connect();
+
+    // global variables
+    let currentRoomId;
+    let init = false;
     let mode = "DarkMode";
+
+    // set up dark mode/light mode switch
     document.getElementsByClassName("body")[0].id = mode;
 
     document.getElementById("dark_mode_toggle").addEventListener("click", function(){
         if (mode == "DarkMode"){
             mode = "LightMode";  
-            document.getElementById("dark_mode_toggle").textContent = "Switch to Dark Mode";      
+            document.getElementById("dark_mode_toggle").textContent = "Enable Dark Mode";      
         }
         else {
             mode = "DarkMode";
-            document.getElementById("dark_mode_toggle").textContent = "Switch to Light Mode";
+            document.getElementById("dark_mode_toggle").textContent = "Enable Light Mode";
         }
         document.getElementsByClassName("body")[0].id = mode;
-    })
+    });
 
+    // initial prompt for username
+    let user = prompt("Welcome to Chat Room!\nUsername:");
 
     // ensure non-empty username given and cancel does not circumvent entering username
     while(user == "" || user == null){
         user = prompt("Please enter a non-empty username. \nUsername:");
     }
 
-    // global variables
-    let currentRoomId;
-    let init = false;
+    
     
     // function for escaping output 
     function encodeHTML(s) {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
     }
-
-    var socketio = io.connect();
 
     // send information and store socket username with associated id for disconnect TODO but can omit
     socketio.emit('store_username_with_id', {username: user});
