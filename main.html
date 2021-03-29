@@ -255,7 +255,7 @@
                     messageArea.appendChild(adminHeader);
 
                     // add kick input + button
-                    createHtmlInput(messageArea, "Kick: ", "kick_username");
+                    createHtmlDropdown(messageArea, "Kick: ", "kick_username", data["active_users"])
                     createHtmlButton(messageArea, "kick", "", "kick");
 
                     // add ban input + button
