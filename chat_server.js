@@ -218,8 +218,41 @@ io.sockets.on("connection", function (socket) {
     socket.on("refresh_rooms_to_server", function (){
         socket.emit("refresh_rooms_to_client", sendList());
     });
-    
 
+    socket.on("remove_room_to_server", function (data) {
+        console.log("entered remove room to sergver with data", data);
+
+        //check each room
+        for(let i = 0; i < allRooms.length; i++){
+            // if right credentials, then delete and refresh all rooms
+            // otherwise, update appropriate error message
+
+            console.log(allRooms[i].roomName, data["room_name"], allRooms[i].roomName == data["room_name"]);
+            if(allRooms[i].roomName == data["room_name"]){
+                
+                console.log(allRooms[i].creator, data["author"], allRooms[i].creator == data["author"]);
+                if(allRooms[i].creator == data["author"]){
+                    
+                    // create new object to update allRooms
+                    let newRooms = [];
+                    for(let i = 0; i < allRooms.length; i++){
+                        if(allRooms[i].roomName != data["room_name"]){
+                            newRooms.push(allRooms[i]);
+                        }
+                    }
+                    allRooms = newRooms;
+
+                    console.log("deletion... updated allRooms:", allRooms);
+
+                    io.sockets.emit("refresh_rooms_to_client", sendList());
+                }
+                else {
+
+                }
+            }
+        }
+        
+    });
 });
 
 function sendList(){

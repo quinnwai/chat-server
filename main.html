@@ -16,11 +16,15 @@
             <h3>Add Room</h3>
             <label>Room name:</label><input type="text" id="add_room_name" /> <br>
             <label>Password (optional):</label><input type="password" id="add_room_password" />
-            <!-- <button id="add">add</button> -->
         </div>
         <div><br> <button id="add">Add</button></div>
+        <div id="remove_room">
+            <h3>Remove Room</h3>
+            <label>Room name:</label><input type="text" id="remove_room_name" /> <br>
+        </div>
+        <div><br> <button id="remove">remove</button></div>
         <h2> Rooms </h2>
-        <!-- <button class="roomButton"> hi man </button> -->
+        
     </div>
     
     <div id="messageArea">
@@ -233,6 +237,9 @@
                 chatlog.id = "chatlog";
                 messageArea.appendChild(chatlog);
 
+                // smol break
+                messageArea.appendChild(document.createElement("br"));
+
                 // create leave button
                 let leaveButton = document.createElement("button");
                 leaveButton.id = "leave_room";
@@ -362,12 +369,6 @@
             }
             else if(data["purpose"] == "ban"){
                 alert("You have been banned from the room");
-
-                // get rid of buttons
-                roomButtons = document.getElementsByClassName("roomButton");
-                for(let i = roomButtons.length-1; i >= 0; i--){
-                    roomButtons[i].remove();
-                }
                 
                 // emit to refresh buttons
                 socketio.emit("refresh_rooms_to_server");
@@ -379,6 +380,12 @@
     });
 
     socketio.on("refresh_rooms_to_client", function (data){
+        // get rid of buttons
+        roomButtons = document.getElementsByClassName("roomButton");
+        for(let i = roomButtons.length-1; i >= 0; i--){
+            roomButtons[i].remove();
+        }
+
         showLobby(data);
     });
         
@@ -465,6 +472,17 @@
             socketio.emit("message_to_server", { room_id: currentRoomId, message: msg, author: user });
         }
     }
+
+    document.getElementById("remove").addEventListener("click", function(){
+           let roomName = document.getElementById("remove_room_name").value;
+           console.log("sending over", {room_name: roomName, author: user});
+           socketio.emit("remove_room_to_server", {room_name: roomName, author: user});
+    });
+
+    // socketio.on("remove_room_to_client", function (data) {
+
+    // });
+
 </script>
 </body>
 </html>
