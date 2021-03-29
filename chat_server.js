@@ -54,7 +54,7 @@ const io = socketio.listen(server);
 io.sockets.on("connection", function (socket) {
     // This callback runs when a new Socket.IO connection is established.
 
-    // add to key
+    // Add to list of users with ids
     socket.on('store_username_with_id', function (data) {
         let usr = data["username"];
 
