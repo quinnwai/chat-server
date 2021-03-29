@@ -60,6 +60,12 @@ input{
     margin: 5px;
 }
 
+select{
+    border: 1px solid black;
+    padding: 10px;
+    margin: 5px;
+}
+
 #messageArea{
     flex: 5;
     padding: 10px 40px;

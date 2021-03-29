@@ -8,3 +8,6 @@
 - refresh page so the guy gets kicked out... send the dude a message saying he's been kicked out?
 socket emit the username of the guy being banned... let there be a listener on main.html.. if user same as username send alert
 
+TODO
+Add dropdown for ban,kick, to(priv message)
+Test with edge case

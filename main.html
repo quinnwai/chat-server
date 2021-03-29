@@ -220,8 +220,8 @@
                 messageArea.appendChild(para);
         
                 // create message and username (for dms) HTML inputs
-                createHtmlInput(messageArea, "message: ", "message_input");
-                createHtmlInput(messageArea, " to (optional, private message): ", "username_input");
+                createHtmlInput(messageArea, "Message: ", "message_input");
+                createHtmlDropdown(messageArea, " To (optional, private message): ", "username_input", data["active_users"]);
 
                 // create button w/ send message listener
                 createHtmlButton(messageArea, "send_message", "", "send");
@@ -312,6 +312,23 @@
         button.textContent = text;
         area.appendChild(button);
     }
+
+      /*
+      function to add HTML dropdown
+      params: area (input where dropdown is created), id (id of dropdown), text (text inside the button), dropdown options
+      */
+        function createHtmlDropdown(area, label, id, names) {
+            area.appendChild(document.createTextNode(label));
+            let dropdown = document.createElement("select");
+            dropdown.id = id;
+            for (let i = 0; i < names.length; ++i){
+                let option = document.createElement("option");
+                option.value = names[i];
+                option.text = names[i];
+                dropdown.appendChild(option);
+            }
+            area.appendChild(dropdown);
+        }
     
     /*
     function to make a user leave the room (Ex: leave room button, kicked, banned)
@@ -388,6 +405,7 @@
             deleteChildren(allUsers);
 
             //re-print the list
+            allUsers.appendChild(document.createTextNode(encodeHTML("Users: ")));
             for(let i = 0; i < data["active_users"].length; i++){
                 allUsers.appendChild(document.createTextNode(encodeHTML(data["active_users"][i])));
 
