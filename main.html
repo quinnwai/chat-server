@@ -226,7 +226,7 @@
                 let pmOpt = data["active_users"];
                 pmOpt.unshift("");
                 
-                createHtmlDropdown(messageArea, " To (optional, private message): ", "username_input", data["active_users"]);
+                createHtmlInput(messageArea, " To (optional, private message): ", "username_input");
 
                 // create button w/ send message listener
                 createHtmlButton(messageArea, "send_message", "", "send");
@@ -263,7 +263,7 @@
                     messageArea.appendChild(adminHeader);
 
                     // add kick input + button
-                    createHtmlDropdown(messageArea, "Kick: ", "kick_username", data["active_users"])
+                    createHtmlInput(messageArea, "Kick: ", "kick_username")
                     createHtmlButton(messageArea, "kick", "", "kick");
 
                     // add ban input + button
