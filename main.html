@@ -145,9 +145,9 @@
                             let correct_pass = true;
                             if (allRooms[i].has_pass === true) {
                                 correct_pass = false;
-                                while (pass == "" || pass == null){
+                                // while (pass == "" || pass == null){
                                 pass = prompt("Please enter the room's password to gain access");
-                                }
+                                // }
                                 console.log({ password: pass, id: i });
                                 socketio.emit("send_pass_to_server", { password: pass, room_id: i, author: user });
                             }
