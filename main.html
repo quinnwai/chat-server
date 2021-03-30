@@ -11,7 +11,7 @@
 <div id="main">
     <div id="availableRooms">
         <h2> Lobby </h2>
-        <button id = "dark_mode_toggle"> Switch to Light Mode </button>
+        <button id = "dark_mode_toggle"> Enable Light Mode </button>
         <div id="add_room">
             <h3>Add Room</h3>
             <label>Room name:</label><input type="text" id="add_room_name" /> <br>
@@ -68,7 +68,7 @@
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
     }
 
-    // send information and store socket username with associated id for disconnect TODO but can omit
+    // send information and store socket username with associated id
     socketio.emit('store_username_with_id', {username: user});
 
     // event listener/functionality to add a room
@@ -77,8 +77,6 @@
         //send stuff over to client
         let add_name = document.getElementById("add_room_name").value;
         let add_pwd = document.getElementById("add_room_password").value;
-
-        // TODO: make sure there's no duplicate rooms
 
         if(add_name == ""){
             alert("please fill out a room name!");
@@ -154,8 +152,7 @@
                                 socketio.emit("send_pass_to_server", { password: pass, room_id: i, author: user });
                             }
                             else {
-                                // alert("Access granted");
-                                
+                                alert("Welcome!");
                                 // update room id, create messaging area
                                 currentRoomId = i;
                                 showRoom(currentRoomId);
@@ -173,7 +170,7 @@
         console.log("time to check password");
         correct_pass = data["isPass"];
         if (correct_pass) {
-            alert("Access granted");
+            alert("Welcome!");
             //do the thing where he is redirected to room
             currentRoomId = data["room_id"];
             showRoom(currentRoomId);
@@ -479,11 +476,6 @@
            console.log("sending over", {room_name: roomName, author: user});
            socketio.emit("remove_room_to_server", {room_name: roomName, author: user});
     });
-
-    // socketio.on("remove_room_to_client", function (data) {
-
-    // });
-
 </script>
 </body>
 </html>

@@ -1,43 +1,23 @@
-// allRooms test cases (TODO: start as empty once tested)
-let allRooms = [
-    { "roomName": "hi",
-    "roomPass": "vsvsv",
-    "hasPass": true,
-    "activeUsers": ["quinn", "avishal"],
-    "creator": "qwong",
-    "bannedUsers": ["hi", "my", "name"]
-    },
-    {"roomName": "hi2",
-    "roomPass": "",
-    "hasPass": false,
-    "creator": "hi",
-    "activeUsers": ["quinn", "yourmom"],
-    "bannedUsers": ["my", "name"] },
-{"roomName": "hi3",
-    "roomPass": "",
-    "hasPass": false,
-    "creator": "avishal",
-    "activeUsers": ["quinn", "disknee"],
-    "bannedUsers": ["my", "name", "quinn"] }]
-
+// allRooms and liveUsers initalized
+let allRooms = [];
 let liveUsers = [];
 
 // Require the packages we will use:
 const http = require("http"),
-    fs = require("fs");
+fs = require("fs");
 
+// setup for express to enable styling
 const port = 3456;
 const file = "main.html";
 var express = require('express');
 
 const app = express();
 var path = require('path');
-// const { userInfo } = require("node:os");
 const { userInfo } = require("os");
 app.use(express.static((__dirname)));
 console.log(__dirname);
-// Listen for HTTP connections.  This is essentially a miniature static file server that only serves our one file, client.html, on port 3456:
 
+// Listen for HTTP connections for main.html on port 3456:
 const server = http.createServer(app);
 
 server.listen(port || process.env.PORT);
@@ -93,21 +73,6 @@ io.sockets.on("connection", function (socket) {
         //send relevant data back to update list
         io.sockets.emit("update_list_to_client", newList);
     });
-
-    // if user/socket disconnects ... TODO for creative portion but can also omit
-    // socket.on('disconnecting', () => {
-    //     // get username
-    //     let usr = liveUsers[socket.id];
-
-    //     //delete active users
-    //     for(let i = 0; i < allRooms.length; i++){
-    //         if(allRooms[i].activeUsers.includes(usr)){
-                
-    //         };
-    //     }
-
-    //     // TODO: delete associated rooms room (creative portion)
-    //   });
     
     // QW: This is done so that 1 message goes to everyone's socket, so check user name first before emitting
     socket.on('message_to_server', function (data) {
@@ -116,13 +81,14 @@ io.sockets.on("connection", function (socket) {
         console.log("message: " + data["message"]); // log it to the Node.JS output (actual console)
         console.log("author: " + data["author"]);
 
+        //if recipient, send with recipient. Else, send just the room id, message, and author
         if(data["receiver"] == undefined){
             console.log("global message");
             io.sockets.emit("message_to_client", { room_id: data["room_id"], message: data["message"], author: data["author"] }); // broadcast the message to other users
         }
         else{
             console.log("private message to " + data["receiver"]);
-            io.sockets.emit("message_to_client", { room_id: data["room_id"], message: data["message"], author: data["author"], receiver: data["receiver"] }); // broadcast the message to other users
+            io.sockets.emit("message_to_client", { room_id: data["room_id"], message: data["message"], author: data["author"], receiver: data["receiver"] });
         }
     });
 
@@ -146,10 +112,9 @@ io.sockets.on("connection", function (socket) {
         }
     });
 
-    // receiving message from 
+    // processing request from server to get room list 
     socket.on('get_list_to_server', function () {
         //push relevant data (room name and password) onto list
-
         let data = sendList();
 
         io.sockets.emit("send_list_to_client", data);
@@ -181,7 +146,6 @@ io.sockets.on("connection", function (socket) {
     });
 
     socket.on("remove_active_user", function (data) {
-        //TODO: see if more effective method exists later
         // create list of old and new active users
         let oldUsers = allRooms[data["room_id"]].activeUsers;
         let newUsers = [];
@@ -211,16 +175,19 @@ io.sockets.on("connection", function (socket) {
         console.log("new banned users: ", allRooms[data["room_id"]].bannedUsers);
     });
     
+    // forwad request data to all clients
     socket.on("clear_room_to_server", function (data) {
         io.sockets.emit("clear_room_to_client", data);
     });
 
+    // refresh rooms for particular client
     socket.on("refresh_rooms_to_server", function (){
         socket.emit("refresh_rooms_to_client", sendList());
     });
 
+    // remove deleted room from allRooms and send back updated list
     socket.on("remove_room_to_server", function (data) {
-        console.log("entered remove room to sergver with data", data);
+        console.log("entered remove room to server with data", data);
 
         //check each room
         for(let i = 0; i < allRooms.length; i++){
@@ -232,6 +199,8 @@ io.sockets.on("connection", function (socket) {
                 
                 console.log(allRooms[i].creator, data["author"], allRooms[i].creator == data["author"]);
                 if(allRooms[i].creator == data["author"]){
+                    //store active users for later
+                    let activeUsers = allRooms[i].activeUsers;
                     
                     // create new object to update allRooms
                     let newRooms = [];
@@ -245,9 +214,12 @@ io.sockets.on("connection", function (socket) {
                     console.log("deletion... updated allRooms:", allRooms);
 
                     io.sockets.emit("refresh_rooms_to_client", sendList());
-                }
-                else {
 
+                    // remove messaging area for all active users
+                    for(let i = 0; i < activeUsers.length; i++){
+                        let user = activeUsers[i];
+                        io.to(liveUsers[user]).emit("clear_room_to_client", {target: user, purpose: ""} );
+                    }
                 }
             }
         }
