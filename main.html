@@ -476,6 +476,15 @@
            console.log("sending over", {room_name: roomName, author: user});
            socketio.emit("remove_room_to_server", {room_name: roomName, author: user});
     });
+
+    socketio.on("change_room_id", function(data){
+        console.log("check if user in activeUsers and update by index accordingly");
+        for(let i = 0; i < data.length; i++) {
+            if(data[i].includes(user)){
+                currentRoomId = i;
+            }
+        }
+    });
 </script>
 </body>
 </html>

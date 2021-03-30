@@ -220,6 +220,15 @@ io.sockets.on("connection", function (socket) {
                         let user = activeUsers[i];
                         io.to(liveUsers[user]).emit("clear_room_to_client", {target: user, purpose: ""} );
                     }
+
+                    //emit to change room id
+                    let allActiveUsers = [];
+                    for(let i = 0; i < allRooms.length; i++){
+                        console.log("activeUsers in ", i, ":", allRooms[i].activeUsers);
+                        allActiveUsers.push(allRooms[i].activeUsers);
+                    }
+                    console.log("AllActiveUsers:", allActiveUsers);
+                    io.sockets.emit("change_room_id", allActiveUsers);
                 }
             }
         }
